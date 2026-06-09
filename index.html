@@ -1010,10 +1010,16 @@ function doPost(e) {
 
         // Save GAS Endpoint to Browser Storage
         function saveGasSettings() {
-            const urlInput = document.getElementById('gas-url-input').value.trim();
+            let urlInput = document.getElementById('gas-url-input').value.trim();
             if (urlInput && !urlInput.startsWith('https://script.google.com/')) {
                 showToast("無效的 Google GAS 部署 URL 格式", false);
                 return;
+            }
+
+            // 自動防呆修正：如果使用者不小心複製到結尾是 /edit 的網址，自動轉換為 /exec
+            if (urlInput && urlInput.includes('/edit')) {
+                urlInput = urlInput.replace(/\/edit.*$/, '/exec');
+                document.getElementById('gas-url-input').value = urlInput;
             }
 
             if (urlInput) {
@@ -1187,7 +1193,8 @@ function doPost(e) {
                 // Execute exponential backoff fetching protocol (up to 3 times)
                 let attempts = 0;
                 let response = null;
-                const readUrl = `${gasUrl}?action=read`;
+                // 加入時間戳 &t=... 參數，強制瀏覽器抓取最新雲端數據，避免被快取
+                const readUrl = `${gasUrl}?action=read&t=${Date.now()}`;
 
                 while (attempts < 3) {
                     try {
@@ -1216,6 +1223,7 @@ function doPost(e) {
                     throw new Error("後端格式錯誤");
                 }
             } catch (err) {
+                console.error("GAS 連線錯誤:", err);
                 dot.className = "h-2.5 w-2.5 rounded-full bg-rose-500";
                 txt.innerText = "連線失敗，請檢查 GAS 部署權限";
                 showToast("與 Google 試算表同步數據時失敗，將使用暫存模擬資料呈現", false);
@@ -1240,8 +1248,8 @@ function doPost(e) {
             try {
                 const response = await fetch(gasUrl, {
                     method: 'POST',
-                    mode: 'no-cors', // standard gas cross origin bypass
-                    headers: { 'Content-Type': 'application/json' },
+                    // 【關鍵修正】移除 mode: 'no-cors' 和 headers
+                    // 讓瀏覽器預設以 text/plain 發送，完美避開 GAS 不支援的 OPTIONS CORS 預檢攔截
                     body: JSON.stringify({
                         action: 'create',
                         sheet: sheetName,
@@ -1249,12 +1257,17 @@ function doPost(e) {
                     })
                 });
                 
-                // Since 'no-cors' mode might not return body, we refresh to update UI in parallel
-                showToast("數據正在寫入 Google Sheets...");
-                setTimeout(refreshAllData, 1500);
+                const result = await response.json();
+                if (result.status !== "success") {
+                    throw new Error(result.message || "寫入失敗");
+                }
+
+                showToast("成功寫入 Google Sheets 雲端資料庫！");
+                refreshAllData(); // 寫入後立即刷新拿最新數據
                 return true;
             } catch (err) {
-                showToast("雲端存入異常，已切換快取緩衝", false);
+                console.error("寫入錯誤:", err);
+                showToast("雲端存入異常，請檢查網路或 GAS 權限", false);
                 return false;
             }
         }
@@ -1271,10 +1284,9 @@ function doPost(e) {
 
             try {
                 showToast("正在從 Google 雲端刪除該資料...");
-                await fetch(gasUrl, {
+                const response = await fetch(gasUrl, {
                     method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
+                    // 【關鍵修正】同樣移除 mode 和 headers 避免預檢失敗
                     body: JSON.stringify({
                         action: 'delete',
                         sheet: sheetName,
@@ -1282,8 +1294,15 @@ function doPost(e) {
                     })
                 });
 
-                setTimeout(refreshAllData, 1500);
+                const result = await response.json();
+                if (result.status !== "success") {
+                    throw new Error(result.message || "刪除失敗");
+                }
+                
+                showToast("雲端資料已成功刪除！");
+                refreshAllData();
             } catch (err) {
+                console.error("刪除錯誤:", err);
                 showToast("雲端刪除程序異常", false);
             }
         }
