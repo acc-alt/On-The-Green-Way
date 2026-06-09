@@ -1246,10 +1246,13 @@ function doPost(e) {
             }
 
             try {
-                const response = await fetch(gasUrl, {
+                // 【關鍵修正】強制使用 no-cors 模式，並指定 text/plain 避免 OPTIONS 預檢被擋
+                await fetch(gasUrl, {
                     method: 'POST',
-                    // 【關鍵修正】移除 mode: 'no-cors' 和 headers
-                    // 讓瀏覽器預設以 text/plain 發送，完美避開 GAS 不支援的 OPTIONS CORS 預檢攔截
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8'
+                    },
                     body: JSON.stringify({
                         action: 'create',
                         sheet: sheetName,
@@ -1257,17 +1260,13 @@ function doPost(e) {
                     })
                 });
                 
-                const result = await response.json();
-                if (result.status !== "success") {
-                    throw new Error(result.message || "寫入失敗");
-                }
-
-                showToast("成功寫入 Google Sheets 雲端資料庫！");
-                refreshAllData(); // 寫入後立即刷新拿最新數據
+                // no-cors 模式下回傳值為不透明(opaque)，無法解析 json()。直接視為發送成功並延遲刷新
+                showToast("指令已送出，正在同步至 Google Sheets 雲端資料庫...");
+                setTimeout(refreshAllData, 1500); // 給予 GAS 寫入時間後刷新
                 return true;
             } catch (err) {
                 console.error("寫入錯誤:", err);
-                showToast("雲端存入異常，請檢查網路或 GAS 權限", false);
+                showToast("發送至雲端異常，請檢查網路或 GAS 權限", false);
                 return false;
             }
         }
@@ -1283,10 +1282,14 @@ function doPost(e) {
             }
 
             try {
-                showToast("正在從 Google 雲端刪除該資料...");
-                const response = await fetch(gasUrl, {
+                showToast("正在傳送刪除指令至 Google 雲端...");
+                // 【關鍵修正】同樣加上 no-cors 與 text/plain
+                await fetch(gasUrl, {
                     method: 'POST',
-                    // 【關鍵修正】同樣移除 mode 和 headers 避免預檢失敗
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8'
+                    },
                     body: JSON.stringify({
                         action: 'delete',
                         sheet: sheetName,
@@ -1294,16 +1297,10 @@ function doPost(e) {
                     })
                 });
 
-                const result = await response.json();
-                if (result.status !== "success") {
-                    throw new Error(result.message || "刪除失敗");
-                }
-                
-                showToast("雲端資料已成功刪除！");
-                refreshAllData();
+                setTimeout(refreshAllData, 1500);
             } catch (err) {
                 console.error("刪除錯誤:", err);
-                showToast("雲端刪除程序異常", false);
+                showToast("雲端刪除程序發送異常", false);
             }
         }
 
