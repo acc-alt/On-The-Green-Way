@@ -224,7 +224,7 @@
                         <tbody id="dashboard-recent-tbody">
                             <tr>
                                 <td colspan="6" class="p-6 text-center text-slate-400">
-                                    <i class="fa-solid fa-spinner animate-spin mr-2"></i> 正在自 Google Sheets 即時同步資料...
+                                    <i class="fa-solid fa-spinner animate-spin mr-2"></i> 正在同步資料...
                                 </td>
                             </tr>
                         </tbody>
@@ -1244,7 +1244,7 @@ function doPost(e) {
             }
 
             dot.className = "h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse";
-            txt.innerText = "同步 Google Sheets 雲端資料中...";
+            txt.innerText = "同步資料中...";
 
             try {
                 // Execute exponential backoff fetching protocol (up to 3 times)
@@ -1318,7 +1318,7 @@ function doPost(e) {
                 });
                 
                 // no-cors 模式下回傳值為不透明(opaque)，無法解析 json()。直接視為發送成功並延遲刷新
-                showToast("執行中，請稍後...");
+                showToast("新增中，請稍後...");
                 setTimeout(refreshAllData, 1500); // 給予 GAS 寫入時間後刷新
                 return true;
             } catch (err) {
@@ -1333,7 +1333,7 @@ function doPost(e) {
             const gasUrl = localStorage.getItem('gas_web_app_url');
             if (!gasUrl) {
                 appState[sheetName] = appState[sheetName].filter(item => item.id !== recordId);
-                showToast("已成功刪除暫存明細");
+                showToast("已成功刪除");
                 renderAllUI();
                 return;
             }
