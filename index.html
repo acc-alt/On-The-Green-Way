@@ -323,7 +323,7 @@
                                 <th class="p-3">載重 (噸)</th>
                                 <th class="p-3">精準里程 (km)</th>
                                 <th class="p-3">碳排放 (kg CO₂e)</th>
-                                <th class="p-3 text-center">操作</th>
+                                <th class="p-3 text-center">刪除</th>
                             </tr>
                         </thead>
                         <tbody id="land-tbody">
@@ -444,7 +444,7 @@
                                 <th class="p-3">貨櫃(備註)</th>
                                 <th class="p-3">航程里程(km)</th>
                                 <th class="p-3">碳排放 (kg CO₂e)</th>
-                                <th class="p-3 text-center">操作</th>
+                                <th class="p-3 text-center">刪除</th>
                             </tr>
                         </thead>
                         <tbody id="sea-tbody">
@@ -513,7 +513,7 @@
                                 <th class="p-3">油種</th>
                                 <th class="p-3">盤查公升數 (L)</th>
                                 <th class="p-3">碳排放 (kg CO₂e)</th>
-                                <th class="p-3 text-center">操作</th>
+                                <th class="p-3 text-center">刪除</th>
                             </tr>
                         </thead>
                         <tbody id="fleet-tbody">
@@ -1339,7 +1339,7 @@ function doPost(e) {
             }
 
             try {
-                showToast("正在傳送刪除指令至 Google 雲端...");
+                showToast("正在刪除中...");
                 // 【關鍵修正】同樣加上 no-cors 與 text/plain
                 await fetch(gasUrl, {
                     method: 'POST',
