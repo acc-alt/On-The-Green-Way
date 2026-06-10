@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>何鑫實業｜交通運輸碳盤查</title>
+    <title>長榮風格交通運輸碳盤查系統</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js for beautiful charts -->
@@ -71,9 +71,9 @@
                     <div class="bg-white p-2.5 rounded-full flex items-center justify-content shadow-inner">
                         <i class="fa-solid fa-earth-asia text-2xl text-eva-green"></i>
                     </div>
-                    <div>
+                    <div> 
                         <span class="font-serif text-2xl font-bold tracking-widest text-eva-lightgold">「碳」索軌跡 <span class="text-eva-gold">On The Green Way</span></span>
-                        <h1 class="text-xs tracking-wider text-emerald-200 uppercase font-medium">≡ 何鑫實業股份有限公司 ≡</h1>
+                        <h1 class="text-xs tracking-wider text-emerald-200 uppercase font-medium">≡ 何鑫實業股份有限公司 ≡ </h1>
                     </div>
                 </div>
                 
@@ -127,7 +127,7 @@
                     <div class="absolute right-3 bottom-1 text-emerald-800/20 text-8xl font-serif font-black">CO2</div>
                     <p class="text-xs uppercase tracking-widest text-emerald-100 font-bold">總累計碳排放量</p>
                     <h3 class="text-4xl font-extrabold mt-2 font-serif text-eva-lightgold" id="kpi-total-co2">0.00 <span class="text-lg">kg CO₂e</span></h3>
-                    <p class="text-xs text-emerald-200/80 mt-2"><i class="fa-solid fa-clock-rotate-left mr-1"></i>即時資料</p>
+                    <p class="text-xs text-emerald-200/80 mt-2"><i class="fa-solid fa-clock-rotate-left mr-1"></i></p>
                 </div>
                 <!-- Card 2: Land Transport -->
                 <div class="bg-white rounded-2xl p-6 shadow-sm border-l-4 border-emerald-600">
@@ -224,7 +224,7 @@
                         <tbody id="dashboard-recent-tbody">
                             <tr>
                                 <td colspan="6" class="p-6 text-center text-slate-400">
-                                    <i class="fa-solid fa-spinner animate-spin mr-2"></i> 正在同步資料...
+                                    <i class="fa-solid fa-spinner animate-spin mr-2"></i> 正在自 Google Sheets 即時同步資料...
                                 </td>
                             </tr>
                         </tbody>
@@ -236,8 +236,8 @@
         <!-- ==================== TAB 2: LAND TRANSPORT ==================== -->
         <section id="content-land" class="hidden space-y-6">
             <!-- Form Card -->
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                <div class="pb-4 border-b border-slate-100">
+            <div class="bg-gradient-to-b from-emerald-50/80 to-white rounded-2xl p-6 shadow-md border-t-4 border-t-emerald-600 border-x border-b border-slate-100">
+                <div class="pb-4 border-b border-emerald-100/50">
                     <h4 class="font-serif text-lg font-bold text-eva-darkgreen"><i class="fa-solid fa-truck-ramp-box mr-2 text-eva-gold"></i>新增陸運配送數據</h4>
                     <p class="text-xs text-slate-400">輸入起點與終點鄉鎮里，系統將自動調用 OSRM API 精算行車路線里程，並依最新碳排係數計算。</p>
                 </div>
@@ -302,7 +302,7 @@
 
                     <div class="flex justify-end">
                         <button type="submit" id="land-btn" class="px-6 py-3 bg-gradient-to-r from-eva-darkgreen to-eva-green hover:brightness-110 text-white font-bold rounded-lg shadow-lg transition flex items-center gap-2 text-sm">
-                            <i class="fa-solid fa-floppy-disk"></i> 新增
+                            <i class="fa-solid fa-floppy-disk"></i> 計算並寫入雲端資料庫
                         </button>
                     </div>
                 </form>
@@ -323,7 +323,7 @@
                                 <th class="p-3">載重 (噸)</th>
                                 <th class="p-3">精準里程 (km)</th>
                                 <th class="p-3">碳排放 (kg CO₂e)</th>
-                                <th class="p-3 text-center">刪除</th>
+                                <th class="p-3 text-center">操作</th>
                             </tr>
                         </thead>
                         <tbody id="land-tbody">
@@ -339,8 +339,8 @@
         <!-- ==================== TAB 3: SEA FREIGHT ==================== -->
         <section id="content-sea" class="hidden space-y-6">
             <!-- Sea Input Form -->
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                <div class="pb-4 border-b border-slate-100">
+            <div class="bg-gradient-to-b from-blue-50/80 to-white rounded-2xl p-6 shadow-md border-t-4 border-t-blue-600 border-x border-b border-slate-100">
+                <div class="pb-4 border-b border-blue-100/50">
                     <h4 class="font-serif text-lg font-bold text-eva-darkgreen"><i class="fa-solid fa-ship mr-2 text-eva-gold"></i>新增進口海運貨物數據</h4>
                     <p class="text-xs text-slate-400">記錄跨兩岸大港口的海運貨物，系統根據經典航程浬數，換算為公里並乘載重，產出極其精準之海運運輸碳盤查排放值。</p>
                 </div>
@@ -423,7 +423,7 @@
 
                     <div class="flex justify-end">
                         <button type="submit" id="sea-btn" class="px-6 py-3 bg-gradient-to-r from-eva-darkgreen to-eva-green hover:brightness-110 text-white font-bold rounded-lg shadow-lg transition flex items-center gap-2 text-sm">
-                            <i class="fa-solid fa-floppy-disk"></i> 新增
+                            <i class="fa-solid fa-floppy-disk"></i> 計算並寫入雲端資料庫
                         </button>
                     </div>
                 </form>
@@ -444,7 +444,7 @@
                                 <th class="p-3">貨櫃(備註)</th>
                                 <th class="p-3">航程里程(km)</th>
                                 <th class="p-3">碳排放 (kg CO₂e)</th>
-                                <th class="p-3 text-center">刪除</th>
+                                <th class="p-3 text-center">操作</th>
                             </tr>
                         </thead>
                         <tbody id="sea-tbody">
@@ -460,8 +460,8 @@
         <!-- ==================== TAB 4: VEHICLE FLEET ==================== -->
         <section id="content-fleet" class="hidden space-y-6">
             <!-- Fuel Input Form -->
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                <div class="pb-4 border-b border-slate-100">
+            <div class="bg-gradient-to-b from-amber-50/80 to-white rounded-2xl p-6 shadow-md border-t-4 border-t-amber-500 border-x border-b border-slate-100">
+                <div class="pb-4 border-b border-amber-100/50">
                     <h4 class="font-serif text-lg font-bold text-eva-darkgreen"><i class="fa-solid fa-file-invoice-dollar mr-2 text-eva-gold"></i>新增公務/運輸車輛油單盤查</h4>
                     <p class="text-xs text-slate-400">輸入每月累計油單公升數，並精確區分汽油與柴油，依環境部溫室氣體排放係數換算為總排碳。此項直接追蹤實際能源燃料消耗。</p>
                 </div>
@@ -495,7 +495,7 @@
 
                     <div class="flex justify-end">
                         <button type="submit" id="fleet-btn" class="px-6 py-3 bg-gradient-to-r from-eva-darkgreen to-eva-green hover:brightness-110 text-white font-bold rounded-lg shadow-lg transition flex items-center gap-2 text-sm">
-                            <i class="fa-solid fa-floppy-disk"></i> 新增
+                            <i class="fa-solid fa-floppy-disk"></i> 計算並寫入雲端資料庫
                         </button>
                     </div>
                 </form>
@@ -513,7 +513,7 @@
                                 <th class="p-3">油種</th>
                                 <th class="p-3">盤查公升數 (L)</th>
                                 <th class="p-3">碳排放 (kg CO₂e)</th>
-                                <th class="p-3 text-center">刪除</th>
+                                <th class="p-3 text-center">操作</th>
                             </tr>
                         </thead>
                         <tbody id="fleet-tbody">
@@ -728,8 +728,8 @@ function doPost(e) {
     <!-- Premium Footer -->
     <footer class="bg-eva-darkgreen text-white py-6 border-t border-eva-gold/20 mt-auto">
         <div class="max-w-7xl mx-auto px-4 text-center text-xs space-y-2 text-emerald-200/60">
-            <p class="font-serif text-sm text-eva-lightgold">HERHSIN ECO TRANSPORTATION CARBON ACCOUNTING SYSTEM</p>
-            <p>© 2026 何鑫永續管理與精準排碳盤查網站 | 版權所有</p>
+            <p class="font-serif text-sm text-eva-lightgold">EVA ECO TRANSPORTATION CARBON ACCOUNTING SYSTEM</p>
+            <p>© 2026 永續管理與精準排碳盤查平台 | 基於台灣環境部最新碳盤查係數與 OSRM 里程網絡計算</p>
         </div>
     </footer>
 
@@ -1244,7 +1244,7 @@ function doPost(e) {
             }
 
             dot.className = "h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse";
-            txt.innerText = "同步資料中...";
+            txt.innerText = "同步 Google Sheets 雲端資料中...";
 
             try {
                 // Execute exponential backoff fetching protocol (up to 3 times)
@@ -1318,7 +1318,7 @@ function doPost(e) {
                 });
                 
                 // no-cors 模式下回傳值為不透明(opaque)，無法解析 json()。直接視為發送成功並延遲刷新
-                showToast("新增中，請稍後...");
+                showToast("指令已送出，正在同步至 Google Sheets 雲端資料庫...");
                 setTimeout(refreshAllData, 1500); // 給予 GAS 寫入時間後刷新
                 return true;
             } catch (err) {
@@ -1333,13 +1333,13 @@ function doPost(e) {
             const gasUrl = localStorage.getItem('gas_web_app_url');
             if (!gasUrl) {
                 appState[sheetName] = appState[sheetName].filter(item => item.id !== recordId);
-                showToast("已成功刪除");
+                showToast("已成功刪除暫存明細");
                 renderAllUI();
                 return;
             }
 
             try {
-                showToast("正在刪除...");
+                showToast("正在傳送刪除指令至 Google 雲端...");
                 // 【關鍵修正】同樣加上 no-cors 與 text/plain
                 await fetch(gasUrl, {
                     method: 'POST',
