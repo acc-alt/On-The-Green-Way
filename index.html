@@ -590,7 +590,12 @@ function doGet(e) {
 
 function doPost(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet();
-  var params = JSON.parse(e.postData.contents);
+  try {
+    var params = JSON.parse(e.postData.contents);
+  } catch(error) {
+    return ContentService.createTextOutput(JSON.stringify({status: "error", message: "格式錯誤"}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
   var action = params.action;
   var targetSheet = params.sheet;
   
@@ -602,10 +607,19 @@ function doPost(e) {
   
   if (action === "create") {
     var rowData = params.data;
-    var headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
     
-    // 若工作表全新無欄位，自動初始化
-    if (sh.getLastRow() === 0) {
+    // 【修正】：將時間格式化為台灣時區 (GMT+8)，並且僅顯示年月日
+    rowData.timestamp = Utilities.formatDate(new Date(), "GMT+8", "yyyy-MM-dd");
+    
+    var headers = [];
+    
+    // 【修正】：若工作表為完全空白，getLastColumn() 為 0，直接取 Range 會報錯
+    if (sh.getLastColumn() > 0) {
+      headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+    }
+    
+    // 若工作表全新無欄位，自動從第一筆資料初始化表頭
+    if (headers.length === 0) {
       headers = Object.keys(rowData);
       sh.appendRow(headers);
     }
@@ -621,6 +635,12 @@ function doPost(e) {
   
   if (action === "delete") {
     var idToDelete = params.id;
+    // 【修正】：檢查工作表是否為空
+    if (sh.getLastRow() === 0) {
+      return ContentService.createTextOutput(JSON.stringify({status: "success"}))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
     var values = sh.getDataRange().getValues();
     var headers = values[0];
     var idColIdx = headers.indexOf("id");
@@ -942,18 +962,55 @@ function doPost(e) {
         let pieChartInstance = null;
         let trendChartInstance = null;
 
+        // --- 台灣時區日期處理 Helper 函數 ---
+        function getTaiwanDateTimeParts(d) {
+            const options = { timeZone: 'Asia/Taipei', year: 'numeric', month: 'numeric', day: 'numeric' };
+            const parts = new Intl.DateTimeFormat('en-US', options).formatToParts(d);
+            let y, m, day;
+            parts.forEach(p => {
+                if (p.type === 'year') y = p.value;
+                if (p.type === 'month') m = p.value.padStart(2, '0');
+                if (p.type === 'day') day = p.value.padStart(2, '0');
+            });
+            return {y, m, day};
+        }
+
+        function getTaiwanToday() {
+            const parts = getTaiwanDateTimeParts(new Date());
+            return `${parts.y}-${parts.m}-${parts.day}`;
+        }
+
+        function formatDisplayDate(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            if (!isNaN(d.getTime()) && typeof dateStr === 'string' && dateStr.includes('T')) {
+                const parts = getTaiwanDateTimeParts(d);
+                return `${parts.y}-${parts.m}-${parts.day}`;
+            }
+            return dateStr.toString().substring(0, 10);
+        }
+
+        function formatDisplayMonth(monthStr) {
+            if (!monthStr) return '';
+            const d = new Date(monthStr);
+            if (!isNaN(d.getTime()) && typeof monthStr === 'string' && monthStr.includes('T')) {
+                const parts = getTaiwanDateTimeParts(d);
+                return `${parts.y}-${parts.m}`;
+            }
+            return monthStr.toString().substring(0, 7);
+        }
+
         // Init App
         window.onload = function() {
             // Populate Address Dropdowns
             populateCountySelects();
             
-            // Set Default Dates to Today / Current Month
-            document.getElementById('land-date').value = twDateStr();
-            document.getElementById('sea-date').value = twDateStr();
+            // Set Default Dates to Today / Current Month (台灣時區)
+            document.getElementById('land-date').value = getTaiwanToday();
+            document.getElementById('sea-date').value = getTaiwanToday();
             
-            const now = new Date();
-            const currentMonthStr = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, '0');
-            document.getElementById('fleet-month').value = twDateStr;
+            const parts = getTaiwanDateTimeParts(new Date());
+            document.getElementById('fleet-month').value = `${parts.y}-${parts.m}`;
 
             // Load GAS URL from LocalStorage
             const storedUrl = localStorage.getItem('gas_web_app_url');
@@ -1367,7 +1424,7 @@ function doPost(e) {
             const ok = await writeToCloud('land', record);
             if (ok) {
                 document.getElementById('land-form').reset();
-                document.getElementById('land-date').valueAsDate = new Date();
+                document.getElementById('land-date').value = getTaiwanToday();
                 populateCountySelects();
             }
             btn.disabled = false;
@@ -1410,7 +1467,7 @@ function doPost(e) {
             const ok = await writeToCloud('sea', record);
             if (ok) {
                 document.getElementById('sea-form').reset();
-                document.getElementById('sea-date').value = twDateStr();
+                document.getElementById('sea-date').value = getTaiwanToday();
                 calculateSeaDistance();
             }
             btn.disabled = false;
@@ -1441,8 +1498,8 @@ function doPost(e) {
             const ok = await writeToCloud('fleet', record);
             if (ok) {
                 document.getElementById('fleet-form').reset();
-                const now = new Date();
-                document.getElementById('fleet-month').value = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, '0');
+                const parts = getTaiwanDateTimeParts(new Date());
+                document.getElementById('fleet-month').value = `${parts.y}-${parts.m}`;
             }
             btn.disabled = false;
         }
@@ -1505,12 +1562,12 @@ function doPost(e) {
             dashboardRecent.innerHTML = '';
 
             let combinedList = [];
-            appState.land.forEach(l => combinedList.push({ type: '陸運', date: l.date, key: l.vendor, route: `${l.start} ➜ ${l.end}`, data: `${l.weight}噸 / ${l.km}km`, co2: l.co2 }));
-            appState.sea.forEach(s => combinedList.push({ type: '海運', date: s.date, key: s.shipper, route: `${PORT_NAME_MAP[s.origin] || s.origin} ➜ ${PORT_NAME_MAP[s.dest] || s.dest}`, data: `${s.weight}噸 / ${s.km}km`, co2: s.co2 }));
-            appState.fleet.forEach(f => combinedList.push({ type: '公務車/油耗', date: f.month, key: f.plate, route: `發票盤查 (${f.fuelType === 'diesel' ? '柴油' : '汽油'})`, data: `${f.liters} L`, co2: f.co2 }));
+            appState.land.forEach(l => combinedList.push({ type: '陸運', date: formatDisplayDate(l.date), rawDate: l.date, key: l.vendor, route: `${l.start} ➜ ${l.end}`, data: `${l.weight}噸 / ${l.km}km`, co2: l.co2 }));
+            appState.sea.forEach(s => combinedList.push({ type: '海運', date: formatDisplayDate(s.date), rawDate: s.date, key: s.shipper, route: `${PORT_NAME_MAP[s.origin] || s.origin} ➜ ${PORT_NAME_MAP[s.dest] || s.dest}`, data: `${s.weight}噸 / ${s.km}km`, co2: s.co2 }));
+            appState.fleet.forEach(f => combinedList.push({ type: '公務車/油耗', date: formatDisplayMonth(f.month), rawDate: f.month, key: f.plate, route: `發票盤查 (${f.fuelType === 'diesel' ? '柴油' : '汽油'})`, data: `${f.liters} L`, co2: f.co2 }));
 
-            // Sort by Date desc
-            combinedList.sort((a,b) => new Date(b.date) - new Date(a.date));
+            // Sort by Date desc (using rawDate to ensure correct chronological sorting)
+            combinedList.sort((a,b) => new Date(b.rawDate) - new Date(a.rawDate));
 
             const topTen = combinedList.slice(0, 10);
             if (topTen.length === 0) {
@@ -1549,7 +1606,7 @@ function doPost(e) {
                     const carText = l.vehicle === 'diesel_large_truck' ? '大貨車' : l.vehicle === 'diesel_small_truck' ? '小貨車' : '廂型車';
                     landTbody.innerHTML += `
                         <tr class="border-b border-slate-100 hover:bg-slate-50 transition text-xs">
-                            <td class="p-3 font-semibold text-slate-600">${l.date}</td>
+                            <td class="p-3 font-semibold text-slate-600">${formatDisplayDate(l.date)}</td>
                             <td class="p-3 font-bold">${l.vendor}</td>
                             <td class="p-3 text-slate-500 max-w-xxs truncate" title="${l.start}">${l.start}</td>
                             <td class="p-3 text-slate-500 max-w-xxs truncate" title="${l.end}">${l.end}</td>
@@ -1576,7 +1633,7 @@ function doPost(e) {
                 appState.sea.forEach(s => {
                     seaTbody.innerHTML += `
                         <tr class="border-b border-slate-100 hover:bg-slate-50 transition text-xs">
-                            <td class="p-3 font-semibold text-slate-600">${s.date}</td>
+                            <td class="p-3 font-semibold text-slate-600">${formatDisplayDate(s.date)}</td>
                             <td class="p-3 font-bold">${s.shipper}</td>
                             <td class="p-3 text-emerald-800 font-medium">${PORT_NAME_MAP[s.origin] || s.origin}</td>
                             <td class="p-3 text-amber-800 font-medium">${PORT_NAME_MAP[s.dest] || s.dest}</td>
@@ -1604,7 +1661,7 @@ function doPost(e) {
                     const fuelLabel = f.fuelType === 'diesel' ? '<span class="text-amber-800 font-semibold">柴油</span>' : '<span class="text-blue-800 font-semibold">汽油</span>';
                     fleetTbody.innerHTML += `
                         <tr class="border-b border-slate-100 hover:bg-slate-50 transition text-xs">
-                            <td class="p-3 font-semibold text-slate-600">${f.month}</td>
+                            <td class="p-3 font-semibold text-slate-600">${formatDisplayMonth(f.month)}</td>
                             <td class="p-3 font-bold">${f.plate}</td>
                             <td class="p-3">${fuelLabel}</td>
                             <td class="p-3 font-bold text-slate-600 font-mono">${f.liters} L</td>
@@ -1694,17 +1751,17 @@ function doPost(e) {
             
             // Collect months
             appState.land.forEach(l => {
-                const m = l.date.substring(0, 7); // YYYY-MM
+                const m = formatDisplayMonth(l.date); // 取台灣時區的 YYYY-MM
                 if (!monthlyDataMap[m]) monthlyDataMap[m] = { land: 0, sea: 0, fleet: 0 };
                 monthlyDataMap[m].land += parseFloat(l.co2 || 0);
             });
             appState.sea.forEach(s => {
-                const m = s.date.substring(0, 7);
+                const m = formatDisplayMonth(s.date);
                 if (!monthlyDataMap[m]) monthlyDataMap[m] = { land: 0, sea: 0, fleet: 0 };
                 monthlyDataMap[m].sea += parseFloat(s.co2 || 0);
             });
             appState.fleet.forEach(f => {
-                const m = f.month;
+                const m = formatDisplayMonth(f.month);
                 if (!monthlyDataMap[m]) monthlyDataMap[m] = { land: 0, sea: 0, fleet: 0 };
                 monthlyDataMap[m].fleet += parseFloat(f.co2 || 0);
             });
