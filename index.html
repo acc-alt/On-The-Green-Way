@@ -381,6 +381,7 @@
                                     <option value="Shenzhen">深圳港 (Port of Shenzhen)</option>
                                     <option value="Guangzhou">廣州港 (Port of Guangzhou)</option>
                                     <option value="Qingdao">青島港 (Port of Qingdao)</option>
+                                    <option value="Xiamen">廈門港 (Port of Xiamen)</option>
                                 </optgroup>
                                 <!-- Taiwan Ports -->
                                 <optgroup label="台灣主要港口">
@@ -410,6 +411,7 @@
                                     <option value="Shenzhen">深圳港 (Port of Shenzhen)</option>
                                     <option value="Guangzhou">廣州港 (Port of Guangzhou)</option>
                                     <option value="Qingdao">青島港 (Port of Qingdao)</option>
+                                    <option value="Xiamen">廈門港 (Port of Xiamen)</option>
                                 </optgroup>
                             </select>
                         </div>
@@ -902,19 +904,20 @@ function doPost(e) {
 
         // Static Sea Route Nautical Miles DB between Chinese & Taiwanese Major Ports (to instantly calculate exact CO2)
         const SEA_ROUTE_DB = {
-            "Shanghai": { "Kaohsiung": 550, "Keelung": 380, "Taichung": 460, "Taipei": 390 },
-            "Ningbo": { "Kaohsiung": 460, "Keelung": 290, "Taichung": 370, "Taipei": 300 },
-            "Shenzhen": { "Kaohsiung": 340, "Keelung": 480, "Taichung": 390, "Taipei": 460 },
-            "Guangzhou": { "Kaohsiung": 380, "Keelung": 520, "Taichung": 430, "Taipei": 500 },
-            "Qingdao": { "Kaohsiung": 820, "Keelung": 650, "Taichung": 730, "Taipei": 660 },
-            "Kaohsiung": { "Shanghai": 550, "Ningbo": 460, "Shenzhen": 340, "Guangzhou": 380, "Qingdao": 820, "Keelung": 190, "Taichung": 110, "Taipei": 160 },
-            "Keelung": { "Shanghai": 380, "Ningbo": 290, "Shenzhen": 480, "Guangzhou": 520, "Qingdao": 650, "Kaohsiung": 190, "Taichung": 100, "Taipei": 30 },
-            "Taichung": { "Shanghai": 460, "Ningbo": 370, "Shenzhen": 390, "Guangzhou": 430, "Qingdao": 730, "Kaohsiung": 110, "Keelung": 100, "Taipei": 80 },
-            "Taipei": { "Shanghai": 390, "Ningbo": 300, "Shenzhen": 460, "Guangzhou": 500, "Qingdao": 660, "Kaohsiung": 160, "Keelung": 30, "Taichung": 80 }
+            "Shanghai": { "Kaohsiung": 614, "Keelung": 376, "Taichung": 460, "Taipei": 390 },
+            "Ningbo": { "Kaohsiung": 510, "Keelung": 280, "Taichung": 360, "Taipei": 290 },
+            "Shenzhen": { "Kaohsiung": 340, "Keelung": 500, "Taichung": 420, "Taipei": 490 },
+            "Guangzhou": { "Kaohsiung": 380, "Keelung": 540, "Taichung": 460, "Taipei": 530 },
+            "Qingdao": { "Kaohsiung": 910, "Keelung": 710, "Taichung": 790, "Taipei": 720 },
+            "Xiamen": { "Kaohsiung": 165, "Keelung": 220, "Taichung": 140, "Taipei": 210 },
+            "Kaohsiung": { "Shanghai": 614, "Ningbo": 510, "Shenzhen": 340, "Guangzhou": 380, "Qingdao": 910, "Xiamen": 165, "Keelung": 200, "Taichung": 110, "Taipei": 180 },
+            "Keelung": { "Shanghai": 376, "Ningbo": 280, "Shenzhen": 500, "Guangzhou": 540, "Qingdao": 710, "Xiamen": 220, "Kaohsiung": 190, "Taichung": 100, "Taipei": 30 },
+            "Taichung": { "Shanghai": 460, "Ningbo": 360, "Shenzhen": 420, "Guangzhou": 460, "Qingdao": 790, "Xiamen": 140, "Kaohsiung": 110, "Keelung": 110, "Taipei": 90 },
+            "Taipei": { "Shanghai": 390, "Ningbo": 290, "Shenzhen": 490, "Guangzhou": 530, "Qingdao": 720, "Xiamen": 210, "Kaohsiung": 180, "Keelung": 30, "Taichung": 90 }
         };
 
         const PORT_NAME_MAP = {
-            "Shanghai": "上海港", "Ningbo": "寧波舟山港", "Shenzhen": "深圳港", "Guangzhou": "廣州港", "Qingdao": "青島港",
+            "Shanghai": "上海港", "Ningbo": "寧波舟山港", "Shenzhen": "深圳港", "Guangzhou": "廣州港", "Qingdao": "青島港", "Xiamen": "廈門港",
             "Kaohsiung": "高雄港", "Keelung": "基隆港", "Taichung": "台中港", "Taipei": "台北港"
         };
     </script>
