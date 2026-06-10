@@ -224,7 +224,7 @@
                         <tbody id="dashboard-recent-tbody">
                             <tr>
                                 <td colspan="6" class="p-6 text-center text-slate-400">
-                                    <i class="fa-solid fa-spinner animate-spin mr-2"></i> 正在自 Google Sheets 即時同步資料...
+                                    <i class="fa-solid fa-spinner animate-spin mr-2"></i> 正在同步數據...
                                 </td>
                             </tr>
                         </tbody>
@@ -729,7 +729,7 @@ function doPost(e) {
     <footer class="bg-eva-darkgreen text-white py-6 border-t border-eva-gold/20 mt-auto">
         <div class="max-w-7xl mx-auto px-4 text-center text-xs space-y-2 text-emerald-200/60">
             <p class="font-serif text-sm text-eva-lightgold">EVA ECO TRANSPORTATION CARBON ACCOUNTING SYSTEM</p>
-            <p>© 2026 永續管理與精準排碳盤查平台 | 基於台灣環境部最新碳盤查係數與 OSRM 里程網絡計算</p>
+            <p>© 2026 何鑫永續管理與精準排碳盤查網站 | 版權所有</p>
         </div>
     </footer>
 
@@ -1244,7 +1244,7 @@ function doPost(e) {
             }
 
             dot.className = "h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse";
-            txt.innerText = "同步 Google Sheets 雲端資料中...";
+            txt.innerText = "同步資料中...";
 
             try {
                 // Execute exponential backoff fetching protocol (up to 3 times)
@@ -1274,7 +1274,7 @@ function doPost(e) {
                     appState.fleet = result.data.fleet || [];
                     
                     dot.className = "h-2.5 w-2.5 rounded-full bg-emerald-500";
-                    txt.innerText = "雲端資料庫已同步即時數據";
+                    txt.innerText = "同步即時數據";
                     showToast("即時數據同步成功！");
                 } else {
                     throw new Error("後端格式錯誤");
@@ -1318,7 +1318,7 @@ function doPost(e) {
                 });
                 
                 // no-cors 模式下回傳值為不透明(opaque)，無法解析 json()。直接視為發送成功並延遲刷新
-                showToast("指令已送出，正在同步至 Google Sheets 雲端資料庫...");
+                showToast("新增中，請稍後...");
                 setTimeout(refreshAllData, 1500); // 給予 GAS 寫入時間後刷新
                 return true;
             } catch (err) {
