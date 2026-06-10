@@ -1318,7 +1318,7 @@ function doPost(e) {
                 });
                 
                 // no-cors 模式下回傳值為不透明(opaque)，無法解析 json()。直接視為發送成功並延遲刷新
-                showToast("指令已送出，正在同步至 Google Sheets 雲端資料庫...");
+                showToast("執行中，請稍後...");
                 setTimeout(refreshAllData, 1500); // 給予 GAS 寫入時間後刷新
                 return true;
             } catch (err) {
@@ -1339,7 +1339,7 @@ function doPost(e) {
             }
 
             try {
-                showToast("正在傳送刪除指令至 Google 雲端...");
+                showToast("正在刪除...");
                 // 【關鍵修正】同樣加上 no-cors 與 text/plain
                 await fetch(gasUrl, {
                     method: 'POST',
