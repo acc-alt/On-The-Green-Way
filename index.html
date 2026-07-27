@@ -12,7 +12,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts - Inter & Noto Sans TC -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-    
+    <!-- SheetJS for Excel Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -204,9 +205,16 @@
                         <h4 class="font-bold text-eva-darkgreen text-lg"><i class="fa-solid fa-list-check mr-2 text-eva-gold"></i>近十筆盤查紀錄摘要</h4>
                         <p class="text-xs text-slate-400">跨陸、海、油單類別的最新即時盤查明細</p>
                     </div>
-                    <button onclick="refreshAllData()" class="px-4 py-2 bg-eva-green hover:bg-eva-darkgreen text-white text-xs font-semibold rounded-lg transition shadow flex items-center gap-1">
-                        <i class="fa-solid fa-rotate mr-1"></i> 重新整理
-                    </button>
+                    
+                    <!-- 把兩個按鈕用 flex 容器包起來，並加上 gap-2 調整按鈕間距 -->
+                    <div class="flex items-center gap-2">
+                        <button onclick="refreshAllData()" class="px-4 py-2 bg-eva-green hover:bg-eva-darkgreen text-white text-xs font-semibold rounded-lg transition shadow flex items-center gap-1">
+                            <i class="fa-solid fa-rotate mr-1"></i> 重新整理
+                        </button>
+                        <button onclick="exportToExcel()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition shadow flex items-center gap-1">
+                            <i class="fa-solid fa-file-excel mr-1"></i> 匯出 Excel
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="overflow-x-auto mt-4">
@@ -1557,7 +1565,87 @@ function doPost(e) {
             document.getElementById('kpi-fuel-liters').innerText = Math.round(totalFleetL).toLocaleString();
             document.getElementById('kpi-fuel-count').innerText = appState.fleet.length;
         }
+        // ==================== 匯出 Excel 功能 ====================
+        function exportToExcel() {
+            // 1. 確保 Excel 套件已成功載入
+            if (typeof XLSX === 'undefined') {
+                alert('載入 Excel 套件失敗，請檢查網路連線');
+                return;
+            }
+            // --- 新增：轉換台灣時區日期的工具函數 ---
+            function formatTaiwanDate(dateVal) {
+                if (!dateVal) return '';
+                // 如果包含 'T' (如 2026-07-26T16:00:00.000Z) 或是 Date 物件，就進行轉換
+                if (dateVal instanceof Date || (typeof dateVal === 'string' && dateVal.includes('T'))) {
+                    const d = new Date(dateVal);
+                if (!isNaN(d.getTime())) {
+                    // 轉為台灣時區並格式化為 YYYY-MM-DD
+                    return d.toLocaleString('zh-TW', {
+                        timeZone: 'Asia/Taipei',
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit'
+                    }).replace(/\//g, '-'); // 將 2026/07/27 改成 2026-07-27
+                }
+            }
+            return dateVal; // 如果本來就是乾淨的字串 (例如 "2026-07") 就原樣輸出
+        }
+        // ----------------------------------------
+           // 如果您有寫 toast 提示功能可以呼叫，沒有的話這行會被忽略
+           if(typeof showToast === 'function') showToast('正在產生 Excel 報表...');
+    
+           // 2. 建立新的 Excel 活頁簿
+           const wb = XLSX.utils.book_new();
 
+           // 3. 整理陸運、海運、油單的資料陣列 (對應您的 appState)
+           const landData = appState.land.map(d => ({
+               '日期':  formatTaiwanDate(d.date), // 在這裡轉換日期
+               '廠商名稱': d.vendor,
+               '出發點': d.start || `${d.startCounty||''}${d.startTownship||''}${d.startDetail||''}`,
+               '目的地': d.end || `${d.endCounty||''}${d.endTownship||''}${d.endDetail||''}`,
+               '車型': d.vehicle,
+               '載重 (噸)': d.weight,
+               '精準里程 (km)': d.km,
+               '碳排放 (kg CO₂e)': d.co2
+           }));
+    
+           const seaData = appState.sea.map(d => ({
+               '日期':   formatTaiwanDate(d.date), // 在這裡轉換日期
+               '航商/代理': d.shipper,
+               '出發港': (typeof PORT_NAME_MAP !== 'undefined' && PORT_NAME_MAP[d.origin]) ? PORT_NAME_MAP[d.origin] : d.origin,
+               '抵達港': (typeof PORT_NAME_MAP !== 'undefined' && PORT_NAME_MAP[d.dest]) ? PORT_NAME_MAP[d.dest] : d.dest,
+               '貨量(噸)': d.weight,
+               '貨櫃(備註)': d.container,
+               '航程里程(km)': d.km,
+               '碳排放 (kg CO₂e)': d.co2
+           }));
+
+           const fleetData = appState.fleet.map(d => ({
+               '月份':   formatTaiwanDate(d.month), // 在這裡轉換日期 (如果是月份格式也會處理)
+               '車牌/編號': d.plate,
+               '油種': d.fuelType === 'diesel' ? '柴油' : '汽油',
+               '盤查公升數 (L)': d.liters,
+               '碳排放 (kg CO₂e)': d.co2
+           }));
+
+           // 4. 將資料轉為工作表 (如果陣列是空的，就顯示「尚無資料」)
+           XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(landData.length ? landData : [{'備註':'尚無陸運資料'}]), "陸運紀錄");
+           XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(seaData.length ? seaData : [{'備註':'尚無海運資料'}]), "海運紀錄");
+           XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(fleetData.length ? fleetData : [{'備註':'尚無油單資料'}]), "油單紀錄");
+
+           // 5. 產生當天日期作為檔名後綴 (強制使用台灣時區 Asia/Taipei)
+           const dateStr = new Date().toLocaleString('zh-TW', {
+               timeZone: 'Asia/Taipei',
+               year: 'numeric',
+               month: '2-digit',
+               day: '2-digit'
+           }).replace(/\//g, ''); // 會將 "2026/07/27" 轉換成 "20260727"
+            
+           // 6. 觸發瀏覽器下載
+           XLSX.writeFile(wb, `何鑫實業_碳盤查紀錄表_${dateStr}.xlsx`);
+    
+           if(typeof showToast === 'function') showToast('Excel 匯出成功！');
+      }
         // Render Tables
         function renderTables() {
             // 1. Dashboard Recent Combined
